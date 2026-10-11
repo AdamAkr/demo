@@ -1,0 +1,57 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="robots" content="noindex">
+  <title>Secure payment (demo)</title>
+  <link rel="icon" href="img/icon.svg" type="image/svg+xml">
+  <style>
+    body { font-family: system-ui, -apple-system, "Segoe UI", sans-serif; background: #f2f4f7; display: grid; place-items: center; min-height: 100vh; margin: 0; padding: 16px; color: #1d2939; }
+    .card { background: #fff; border-radius: 18px; padding: 28px; max-width: 400px; width: 100%; box-shadow: 0 10px 40px #0002; }
+    h1 { font-size: 18px; margin: 0 0 4px; }
+    .muted { color: #667085; font-size: 13px; }
+    .amt { font-size: 30px; font-weight: 800; margin: 18px 0; }
+    .fake { display: grid; gap: 8px; margin-bottom: 18px; }
+    .fake > div:not(.row), .row > div { border: 1px solid #d0d5dd; border-radius: 10px; padding: 11px 12px; color: #98a2b3; font-size: 14px; }
+    .row { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+    .note { background: #fff7e6; color: #8a5a00; border-radius: 10px; padding: 10px 12px; font-size: 13px; margin-bottom: 16px; }
+    button { width: 100%; padding: 14px; border: 0; border-radius: 10px; font-size: 15px; font-weight: 700; cursor: pointer; margin-top: 8px; }
+    .pay { background: #16a34a; color: #fff; } .fail { background: #fee2e2; color: #b91c1c; }
+    .brands { display: flex; gap: 8px; align-items: center; margin-top: 14px; justify-content: center; color: #98a2b3; font-size: 12px; }
+  </style>
+</head>
+<body>
+  <main class="card">
+    <h1>🔒 Secure payment</h1>
+    <div class="muted" id="order"></div>
+    <div class="amt" id="amount"></div>
+    <div class="note">Demo payment page. In the real shop, the customer types the card on the bank's secure page like this one — never on the shop website.</div>
+    <div class="fake"><div>Card number •••• •••• •••• ••••</div><div class="row"><div>MM / YY</div><div>CVC</div></div></div>
+    <button class="pay" data-result="paid">Pay now (simulate success)</button>
+    <button class="fail" data-result="failed">Simulate failed payment</button>
+    <div class="brands">VISA · Mastercard</div>
+  </main>
+  <script>
+    var KEY = 'cz_demo_orders';
+    var id = new URLSearchParams(location.search).get('order');
+    var orders = {};
+    try { orders = JSON.parse(localStorage.getItem(KEY) || '{}'); } catch (e) {}
+    var o = orders[id];
+    document.getElementById('order').textContent = o ? 'Charazatydanya · Order #' + o.number : 'Order not found';
+    document.getElementById('amount').textContent = o ? o.total.toLocaleString('en-US') + ' IQD' : '';
+    document.querySelectorAll('[data-result]').forEach(function (b) {
+      b.addEventListener('click', function () {
+        if (!o) { location.href = 'index.html'; return; }
+        b.textContent = 'Processing…';
+        setTimeout(function () {
+          o.paymentStatus = b.dataset.result;
+          orders[id] = o;
+          localStorage.setItem(KEY, JSON.stringify(orders));
+          location.href = 'payment-result.html?order=' + encodeURIComponent(id);
+        }, 900);
+      });
+    });
+  </script>
+</body>
+</html>
